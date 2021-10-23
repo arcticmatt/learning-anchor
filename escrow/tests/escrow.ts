@@ -38,6 +38,7 @@ describe("escrow", () => {
       "confirmed"
     );
 
+    // Creates a token
     mintA = await Token.createMint(
       provider.connection,
       payer,
@@ -47,6 +48,7 @@ describe("escrow", () => {
       TOKEN_PROGRAM_ID
     );
 
+    // Creates a token
     mintB = await Token.createMint(
       provider.connection,
       payer,
@@ -56,16 +58,21 @@ describe("escrow", () => {
       TOKEN_PROGRAM_ID
     );
 
+    // Creates an account to hold mintA tokens.
+    // The owner is provider.wallet.publicKey.
     initializerTokenAccountA = await mintA.createAccount(
       provider.wallet.publicKey
     );
     takerTokenAccountA = await mintA.createAccount(provider.wallet.publicKey);
 
+    // Creates an account to hold mintB tokens.
+    // The owner is provider.wallet.publicKey.
     initializerTokenAccountB = await mintB.createAccount(
       provider.wallet.publicKey
     );
     takerTokenAccountB = await mintB.createAccount(provider.wallet.publicKey);
 
+    // Mints initializerAmount of mintA tokens into initializerTokenAccountA.
     await mintA.mintTo(
       initializerTokenAccountA,
       mintAuthority.publicKey,
@@ -73,6 +80,7 @@ describe("escrow", () => {
       initializerAmount
     );
 
+    // Mints taker of mintB tokens into takerTokenAccountB.
     await mintB.mintTo(
       takerTokenAccountB,
       mintAuthority.publicKey,
