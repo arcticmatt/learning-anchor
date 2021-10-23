@@ -47,6 +47,8 @@ pub struct Create<'info> {
 pub struct Increment<'info> {
     #[account(mut, seeds = [b"counter".as_ref()], bump = counter.bump)]
     pub counter: Account<'info, Counter>,
+    // The important part is the seed, which is set to the signer's public key.
+    // This ensures there is a 1-1 mapping between these PDAs and users.
     #[account(init, seeds = [user.key().as_ref()], bump = _bump, payer = user)]
     pub has_incremented: Account<'info, HasIncremented>,
     // Why do we need mut? It's kind of sneaky—when the user is the wallet (provider.wallet.publicKey)
