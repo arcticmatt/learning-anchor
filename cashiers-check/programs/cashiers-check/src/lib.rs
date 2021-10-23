@@ -110,6 +110,8 @@ impl<'info> CreateCheck<'info> {
             ctx.program_id,
         )
         .map_err(|_| ErrorCode::InvalidCheckNonce)?;
+        // If the program address is not equal to the "check_signer" account address,
+        // return an error.
         if &signer != ctx.accounts.check_signer.to_account_info().key {
             return Err(ErrorCode::InvalidCheckSigner.into());
         }
