@@ -13,7 +13,7 @@ describe('create-account', () => {
     const keypair1 = Keypair.generate();
     const keypair2 = Keypair.generate();
     const airdrop1 = await provider.connection.requestAirdrop(keypair1.publicKey, 100000000000);
-    await provider.connection.confirmTransaction(airdrop1, 'finalized');
+    await provider.connection.confirmTransaction(airdrop1, 'confirmed');
     console.log("keypair1", keypair1.publicKey.toString())
     console.log("keypair2", keypair2.publicKey.toString())
 
@@ -29,7 +29,7 @@ describe('create-account', () => {
     tx.recentBlockhash = (await provider.connection.getRecentBlockhash()).blockhash;
     tx.feePayer = keypair1.publicKey;
     const sig = await provider.connection.sendTransaction(tx, [keypair1, keypair2], { skipPreflight: false, preflightCommitment: "confirmed" });
-    await provider.connection.confirmTransaction(sig, 'finalized');
+    await provider.connection.confirmTransaction(sig, 'confirmed');
 
     const accountInfo = await provider.connection.getAccountInfo(keypair2.publicKey);
     console.log("accountInfo", accountInfo);
