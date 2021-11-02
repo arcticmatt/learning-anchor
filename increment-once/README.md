@@ -93,8 +93,54 @@ for account_info in account_infos {
 
 The above code just makes sure that the account being created (`has_incremented.to_account_info().key`) is also a signer of the instruction. Effectively, this means that if a PDA was generated with a specific program ID, only that program can create the account by calling `invoke_signed` using the PDA's seeds.
 
-One important thing to note is that the program that generates a PDA may not necessarily own it. In the code above, `program_id` happens to be passed as the owner, but this is not enforced (I think).
+One important thing to note is that the program that generates a PDA may not necessarily own it. In the code above, `program_id` happens to be passed as the owner, but this is not enforced (I think). Importantly, the program that owns the PDA account is the only program allowed to modify its data.
 
 However, it is impossible for `programA` to generate a PDA using `findPda(programB, seeds)` and assign itself as the owner. Why? Because `programA` is only able to call `invoke_signed` on `create_account` instructions that create PDAs with `programA` as the program.
 
 In other words, `programA` can generate a PDA using `findPda(programA, seeds)` and *grant* ownership to another program. But it cannot *steal* ownership of another program's PDA.
+
+The [Associated Token Account Program](https://spl.solana.com/associated-token-account) is a good example where the program that creates a PDA is different than its owner. See the code below ([source1](https://github.com/solana-labs/solana-program-library/blob/master/associated-token-account/program/src/processor.rs#L77-L85) and [source2](https://github.com/solana-labs/solana-program-library/blob/master/associated-token-account/program/src/tools/account.rs#L51-L65)):
+
+
+```
+create_pda_account(
+    funder_info,
+    &rent,
+    spl_token::state::Account::LEN,
+    spl_token_program_id,
+    system_program_info,
+    associated_token_account_info,
+    associated_token_account_signer_seeds,
+)?;
+```
+
+```
+pub fn create_pda_account<'a>(
+    payer: &AccountInfo<'a>,
+    rent: &Rent,
+    space: usize,
+    owner: &Pubkey,
+    system_program: &AccountInfo<'a>,
+    new_pda_account: &AccountInfo<'a>,
+    new_pda_signer_seeds: &[&[u8]],
+) -> ProgramResult {
+  ...
+  invoke_signed(
+      &system_instruction::create_account(
+          payer.key,
+          new_pda_account.key,
+          rent.minimum_balance(space).max(1),
+          space as u64,
+          owner,
+      ),
+      &[
+          payer.clone(),
+          new_pda_account.clone(),
+          system_program.clone(),
+      ],
+      &[new_pda_signer_seeds],
+  )
+}
+```
+
+Here, the SPL Token Program is the PDA's owner, but the Associated Token Account Program created the PDA. This means the SPL Token Program is allowed to modify the account's state, e.g. increase its balance.
