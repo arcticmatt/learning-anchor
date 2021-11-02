@@ -63,8 +63,12 @@ Notably, `create_account` is used, not `create_account_with_seed`. The key thing
 
 ```
 // Check Signers
+// account_infos is the second arg of invoke_signed.
 for account_info in account_infos {
+    // instruction.accounts contains the first two args of create_account.
     for instruction_account in &instruction.accounts {
+        // This will be true when instruction_account is has_incremented.to_account_info().key
+        // and account_info is has_incremented.to_account_info().
         if *account_info.unsigned_key() == instruction_account.pubkey
             && instruction_account.is_signer
             && !account_info.is_signer
@@ -87,7 +91,7 @@ for account_info in account_infos {
 }
 ```
 
-The above code just makes sure that the account being created `has_incremented.to_account_info().key` is also a signer of the instruction. Effectively, this means that if a PDA was generated with a specific program ID, only that program can sign using the PDA's seeds.
+The above code just makes sure that the account being created (`has_incremented.to_account_info().key`) is also a signer of the instruction. Effectively, this means that if a PDA was generated with a specific program ID, only that program can create the account by calling `invoke_signed` using the PDA's seeds.
 
 One important thing to note is that the program that generates a PDA may not necessarily own it. In the code above, `program_id` happens to be passed as the owner, but this is not enforced (I think).
 
